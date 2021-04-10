@@ -1,0 +1,19 @@
+#include <bits/stdc++.h>
+#define print(__print__var) cout<<__print__var<<'\n';
+#define input(__input__var) cin>>__input__var;
+#define fo(i,a,b) for(int i=a; i<b; i++)
+
+typedef long long ll;
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int n,m,t;
+    cin>>t;
+    for (int z=0; z<t; z++) {
+        cin>>n>>m;
+        cout << (n%m==0? "YES": "NO")<<'\n';
+    }
+    return 0;
+}

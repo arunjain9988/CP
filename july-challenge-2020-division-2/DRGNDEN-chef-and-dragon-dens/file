@@ -1,0 +1,270 @@
+#include <bits/stdc++.h>  // This will work only for g++ compiler. 
+
+
+#define loop(i, l, r) for (int i = (int)(l); i < (int)(r); ++i)
+#define floop(i, l, r) for (int i = (int)(l); i <= (int)(r); ++i)
+#define rloop(i, l, r) for (int i = (int)(l); i >= (int)(r); --i)
+
+//short hand for usual tokens
+#define pb push_back
+
+// to be used with algorithms that processes a container Eg: find(all(c),42)
+#define all(x) (x).begin(), (x).end() //Forward traversal
+#define rall(x) (x).rbegin, (x).rend() //reverse traversal
+
+// traversal function to avoid long template definition. Now with C++11 auto alleviates the pain.
+#define tr(c,i) for(__typeof__((c)).begin() i = (c).begin(); i != (c).end(); i++)
+
+using namespace std;
+
+// Shorthand for commonly used types
+typedef vector<int> vi;
+typedef vector<vi> vvi;
+typedef pair<int, int> ii;
+typedef vector<ii> vii;
+typedef long long ll;
+typedef vector<ll> vll;
+typedef vector<vll> vvll;
+typedef double ld;
+
+int n,q;
+int a,b,c;
+ll k;
+
+struct Node{
+    ll start;
+    ll top;
+    ll ans;
+    Node() {
+        start = 0;
+        top = 0;
+        ans = 0;
+    }
+    Node(ll s,ll t,ll aa) {
+        start = s;
+        top = t;
+        ans = aa;
+    }
+};
+
+Node Tree[800005];
+Node Tree2[800005];
+
+ll H[200005];
+ll A[200005];
+ll H2[200005];
+ll A2[200005];
+
+Node merge(Node fnode,int sid,Node snode = Node(0,0,0)) {
+    snode.start = Tree[sid].start;
+    snode.top = Tree[sid].top;
+    snode.ans = Tree[sid].ans;
+    if (fnode.top<Tree[sid].start) {
+        return Node(fnode.start,snode.top,fnode.ans+snode.ans); 
+    }
+    else if (snode.top<=fnode.top) {
+        return fnode;
+    }
+    else {
+        Node n1 = Node(0,fnode.top,0);
+        Node n2 = merge(n1,sid*2);
+        Node n3 = merge(n1,sid*2+1);
+        return Node(fnode.start,snode.top,fnode.ans+n2.ans+n3.ans);
+    }
+}
+
+Node merge2(Node fnode,int sid,Node snode = Node(0,0,0)) {
+    snode.start = Tree2[sid].start;
+    snode.top = Tree2[sid].top;
+    snode.ans = Tree2[sid].ans;
+    if (fnode.top<Tree2[sid].start) {
+        return Node(fnode.start,snode.top,fnode.ans+snode.ans); 
+    }
+    else if (snode.top<=fnode.top) {
+        return fnode;
+    }
+    else {
+        Node n1 = Node(0,fnode.top,0);
+        Node n2 = merge2(n1,sid*2);
+        Node n3 = merge2(n1,sid*2+1);
+        return Node(fnode.start,snode.top,fnode.ans+n2.ans+n3.ans);
+    }
+}
+
+
+void init(int node = 1, int start = 0, int end = n-1){
+    if (start==end) {
+        Tree[node] = {H[start],H[start],A[start]};
+    }
+    else {
+        int mid = (start+end)/2;
+        init(node*2,start,mid);
+        init(node*2+1,mid+1,end);
+        Tree[node] = merge(Tree[node*2],node*2+1);
+    }
+}
+
+
+void init2(int node = 1, int start = 0, int end = n-1){
+    if (start==end) {
+        Tree2[node] = {H2[start],H2[start],A2[start]};
+    }
+    else {
+        int mid = (start+end)/2;
+        init2(node*2,start,mid);
+        init2(node*2+1,mid+1,end);
+        Tree2[node] = merge2(Tree2[node*2],node*2+1);
+    }
+}
+
+Node query(int node,int start, int end, int l, int h) {
+    if ( start>=l && end<=h ) {
+            // cout<<"total"<<start<<" "<<end<<" "<<node<<'\n';
+        return Tree[node];
+    }
+    else if (h<start || l>end ) {
+            // cout<<"no"<<start<<" "<<end<<" "<<node<<'\n';
+        return Node(0,0,0);
+    }
+    else {
+            // cout<<"partial"<<start<<" "<<end<<" "<<node<<'\n';
+        int mid = (start+end)/2;
+        Node n1 = query(node*2,start,mid,l,h);
+        Node n2 = query(node*2+1,mid+1,end,l,h);
+        if (n1.top<n2.start) {
+            // cout<<"total over"<<n1.start<<" "<<n2.top<<" "<<n1.ans+n2.ans<<'\n';
+            return Node(n1.start,n2.top,n1.ans+n2.ans);
+        }
+        else if (n1.top>=n2.top) {
+            // cout<<"no over"<<n1.start<<" "<<n1.top<<" "<<n1.ans<<'\n';
+            return n1;
+        }
+        else {
+            // cout<<"merge"<<n1.start<<" "<<n1.top<<" "<<n1.ans<<'\n';
+            return merge(n1,node*2+1);
+        }
+    }
+}
+
+
+Node query2(int node,int start, int end, int l, int h) {
+    if ( start>=l && end<=h ) {
+            // cout<<"total"<<start<<" "<<end<<" "<<node<<'\n';
+        return Tree2[node];
+    }
+    else if (h<start || l>end ) {
+            // cout<<"no"<<start<<" "<<end<<" "<<node<<'\n';
+        return Node(0,0,0);
+    }
+    else {
+            // cout<<"partial"<<start<<" "<<end<<" "<<node<<'\n';
+        int mid = (start+end)/2;
+        Node n1 = query2(node*2,start,mid,l,h);
+        Node n2 = query2(node*2+1,mid+1,end,l,h);
+        if (n1.top<n2.start) {
+            // cout<<"total over"<<n1.start<<" "<<n2.top<<" "<<n1.ans+n2.ans<<'\n';
+            return Node(n1.start,n2.top,n1.ans+n2.ans);
+        }
+        else if (n1.top>=n2.top) {
+            // cout<<"no over"<<n1.start<<" "<<n1.top<<" "<<n1.ans<<'\n';
+            return n1;
+        }
+        else {
+            // cout<<"merge"<<n1.start<<" "<<n1.top<<" "<<n1.ans<<'\n';
+            return merge2(n1,node*2+1);
+        }
+    }
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    cout.precision(10);
+    cout << fixed;
+    cin>>n>>q;
+    loop(i,0,n) {
+        cin>>H[i];
+        H2[n-i-1]=H[i];
+    }
+    loop(i,0,n) {
+        cin>>A[i];
+        A2[n-i-1]=A[i];
+    }
+
+    init();
+    init2();
+    // loop(i,1,4*n+1) {
+    //     cout<<Tree[i].start<<" "<<Tree[i].top<<" "<<Tree[i].ans<<'\n';
+    // }
+
+
+
+
+
+
+
+
+
+
+    loop(i,0,q) {
+        cin>>a;
+        if (a==1) {
+            cin>>b>>k;
+            A[b]=k;
+        }
+        else {
+            cin>>b>>c;
+            if (c<=b) {
+                // ll ans=A[c];
+                // ll cur = c;
+                // c++;
+                // while(c<=b) {
+                //     if (H[c]>H[cur]) {
+                //         ans += A[c];
+                //         cur = c;
+                //     }
+                //     c++;
+                // }
+                // if (cur == b) {
+                //     cout<<ans<<'\n';
+                // }
+                // else {
+                //     cout<<-1<<'\n';
+                // }
+                Node ans = query(1,0,n-1,c-1,b-1);
+                // cout<<ans.start<<" "<<ans.top<<" "<<ans.ans<<'\n';
+                if (ans.top==H[b-1]) cout<<ans.ans;
+                else cout<<-1;
+                cout<<'\n';
+            }
+            else // c>b 
+            {
+                // c--;
+                // b--;
+                // ll ans=A[c];
+                // ll cur = c;
+                // c--;
+                // while(c>=b) {
+                //     if (H[c]>H[cur]) {
+                //         ans += A[c];
+                //         cur = c;
+                //     }
+                //     c--;
+                // }
+                // if (cur == b) {
+                //     cout<<ans<<'\n';
+                // }
+                // else {
+                //     cout<<-1<<'\n';
+                // }
+                Node ans = query2(1,0,n-1,n-c,n-b);
+                // cout<<ans.start<<" "<<ans.top<<" "<<ans.ans<<'\n';
+                if (ans.top==H2[n-b]) cout<<ans.ans;
+                else cout<<-1;
+                cout<<'\n';
+            }
+        }
+    }
+    return 0;
+    
+}
